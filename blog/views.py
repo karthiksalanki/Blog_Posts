@@ -12,7 +12,6 @@ from .serializers import *
 from .models import *
 
 # Create your views here.
-# @permission_classes([AllowAny])
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
 def register(request):
@@ -164,10 +163,12 @@ def posts_by_tag(request, tag_name):
         tag = Tag.objects.get(name=tag_name)
     except Tag.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-
-    posts = tag.blog_posts.all()
-    serializer = BlogPostSerializer(posts, many=True)
-    return Response(serializer.data)
+    try:
+        posts = tag.blog_posts.all()
+        serializer = BlogPostSerializer(posts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error':str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 def tags(request):
@@ -188,7 +189,6 @@ def search_post(request):
             search_query = request.GET.get('search', None)
             posts = BlogPost.objects.all()
 
-            # If search query is provided, filter the queryset
             if search_query:
                 posts = posts.filter(
                     Q(title__icontains=search_query) |  
@@ -198,12 +198,7 @@ def search_post(request):
 
             paginator = PageNumberPagination()
             paginated_posts = paginator.paginate_queryset(posts, request)
-
-            # Serialize the paginated results
             serializer = BlogPostSerializer(paginated_posts, many=True)
-
-            # Return paginated response
             return paginator.get_paginated_response(serializer.data)
-
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
