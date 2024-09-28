@@ -5,6 +5,8 @@ urlpatterns = [
     # User Authentication
     path('register/', register, name='register_user'),
     path('login/', login, name='login'),
+    path('get_access_token/', access_token, name='access_token'),
+
 
     # CRUD operations on posts 
     path('posts/', posts, name='posts'),     # list of posts for advanced features(with pagination) and create posts

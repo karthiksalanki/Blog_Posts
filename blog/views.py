@@ -55,6 +55,27 @@ def login(request):
             return Response({'error':'username an password should not be empty'})
     except Exception as e:
         return Response({'error':str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def access_token(request):
+    try:
+        refresh_token = request.data.get('refresh')
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                new_access_token = token.access_token
+                return Response({
+                    'access': str(new_access_token)
+                }, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response({'error': 'Invalid refresh token'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'error': 'Refresh token is required'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticatedOrReadOnly])
